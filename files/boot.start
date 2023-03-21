@@ -1,0 +1,2 @@
+#!/bin/sh
+/bin/chmod 600 /etc/motd; /bin/chown root:root /etc/motd; /bin/sh /etc/files/startscript.sh > /etc/motd

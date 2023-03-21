@@ -1,0 +1,8 @@
+@{HOME}/aur/{,**} rw,
+@{HOME}/aur-dev/{,**} rw,
+@{HOME}/{D,d}ownloads/{,**} rw,
+@{HOME}/.config/{,**} rw,
+
+# Functions in my ~/.bashrc create files here that I want to edit
+owner /tmp/microv.*/* r,
+owner /tmp/pash-edit{,**} rw,

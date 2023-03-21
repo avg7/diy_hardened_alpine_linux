@@ -1,0 +1,14 @@
+# AppArmor profile for wl-sunset screen temperature daemon
+# Version of program profiled: 0.2.0
+# Homepage: https://github.com/krathalan/apparmor-profiles
+# Copyright 2021 (C) krathalan; Licensed under GPLv3
+
+abi <abi/3.0>,
+include <tunables/global>
+
+profile wlsunset /usr/bin/wlsunset {
+  include <abstractions/base>
+  network unix stream,
+
+  owner /tmp/wlsunset-shared-* rw,
+}

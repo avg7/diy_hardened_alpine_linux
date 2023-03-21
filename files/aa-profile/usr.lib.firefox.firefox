@@ -1,0 +1,187 @@
+# AppArmor profile for firefox browser
+# Version of firefox profiled: 109.0b9
+# This profile should work on Developer Edition and Nightly as well
+# Homepage: https://github.com/krathalan/apparmor-profiles
+# Copyright 2019-2023 (C) krathalan, mortezadadgar; Licensed under GPLv3
+
+# Forked from https://gitlab.com/madaidan/apparmor-profiles, provided without
+# license
+
+# 3 Mar 2023 - Modifed by AVG7.de
+
+abi <abi/3.0>,
+include <tunables/global>
+
+profile firefox /{usr/bin,usr/lib/firefox*}/firefox* {
+  include <abstractions/audio>
+  include <abstractions/base>
+  include <abstractions/fonts>
+  include <abstractions/krathalans-common-gui>
+  include <abstractions/kde-open5>
+  include <abstractions/openssl>
+
+  # Hardware acceleration
+  include <abstractions/krathalans-hwaccel>
+  /etc/libva.conf r,
+  @{system_share_dirs}/libdrm/amdgpu.ids r,
+  @{sys}/devices/pci[0-9]*/[0-9]*/**/[0-9]*/ r,
+  @{sys}/devices/pci[0-9]*/**/drm/{,**} r,
+  @{sys}/devices/pci[0-9]*/**/{irq,resource,revision,config,uevent} r,
+  
+  # Include user overrides for krathalans-hwaccel-nvidia
+  include if exists <local/firefox>
+
+  # Allow access for downloads and uploads
+  include <abstractions/krathalans-downloads>
+
+  # Dconf
+  owner /run/user/*/dconf/ w,
+  owner /run/user/*/dconf/user rw,
+  owner @{HOME}/.config/dconf/user r,
+
+  # Network
+  include <abstractions/krathalans-networking>
+  network netlink raw,
+  network inet dgram,
+  network inet stream,
+  network inet6 dgram,
+  network inet6 stream,
+
+  # Spell checking
+  include <abstractions/enchant>
+
+  # Firefox subprocesses
+  ptrace trace peer=firefox,
+  /usr/bin/{bash,dash} rix,
+  # Use px instead of Px to avoid env scrubbing for LD_PRELOAD libEGL.so, libmozsandbox.so
+  /{usr/bin,usr/lib/firefox*}/firefox* mrpx,
+  owner /dev/shm/shmfd-* rw,
+  owner /dev/shm/org.{chromium,mozilla}.{,ipc.}* rw,
+
+  # Intel
+  /proc/sys/dev/i915/perf_stream_paranoid r,
+  /opt/intel/mediasdk/lib/libmfx.so.* mr,
+
+  # System access
+  /dev/ r,
+  /etc/udev/udev.conf r,
+  /{,var/}run/udev/data/+pci:[0-9]* r,
+  @{system_share_dirs}/ r,
+  /usr/lib/firefox*/{,**} r,
+
+  # Gsettings https://developer.gnome.org/gio/stable/GSettings.html
+  @{system_share_dirs}/glib-[0-9]*/schemas/gschemas.compiled r,
+
+  # Poppler is a PDF rendering library
+  @{system_share_dirs}/poppler/{,**} r,
+
+  # Wayland
+  owner /dev/shm/wayland.mozilla.ipc.* rw,
+
+  # Firefox profiles, cache
+  owner @{HOME}/.mozilla/{,**} rwlk,
+  owner @{HOME}/.cache/mozilla/{,**} rwlk,
+
+  # systemd-homed
+  /{,var/}run/systemd/userdb/ r,
+
+  # Needed to install addons, export files from addons
+  owner /tmp/{,**} rwkl,
+
+  # Don't allow launching other applications to open files
+  deny /usr/bin/gio-launch-desktop rx,
+  deny /etc/mailcap r,
+
+  # GVFS is unnecessary
+  deny @{system_share_dirs}/gvfs/remote-volume-monitors/ r,
+
+  # Deny unnecessary /proc
+  deny @{PROC}/@{pid}/{,**} rw,
+  deny @{PROC}/bus/pci/devices r,
+  deny @{PROC}/sys/kernel/random/boot_id r,
+
+  # Deny /var and /tmp
+  deny /var/{,**} rw,
+
+  # Don't allow executable mapping of arbitrary files
+  deny @{HOME}/#* mrw,
+  deny @{HOME}/.gl* mrw,
+
+  # Silence denial logs about permissions we don't need
+  deny capability sys_admin,
+  deny /usr/lib/firefox*/{crashreporter,pingsender} rx,
+  deny @{sys}/bus/pci/devices/ r,
+  deny @{sys}/devices/system/cpu/** r,
+  deny /usr/bin/lsb_release rx,
+  deny /usr/lib/firefox*/{,**} w,
+  deny @{system_share_dirs}/applications/{,**} r,
+  deny @{HOME}/Desktop/ w,
+  deny @{HOME}/.cache/thumbnails/{,**} rw,
+  deny @{HOME}/.local/{,**} rw,
+  
+  # Other (by AVG7.de)
+  deny capability sys_admin,
+  deny /etc/fstab r,
+  deny /etc/group r,
+  deny /etc/machine-id r,
+  deny /etc/mailcap r,
+  deny /etc/os-release r,
+  deny /etc/passwd r,
+  deny @{HOME}/.{,cache/}fontconfig/** mrwl,  
+  deny @{HOME}/.{,cache/}fontconfig/ rw,
+  deny @{HOME}/.cache/thumbnails/{,**} rw,
+  deny @{HOME}/Desktop/ w,
+  deny @{HOMEDIRS}/.ecryptfs/*/.Private/** mrxwlk,
+  deny @{HOME}/.gl* mrw,
+  deny @{HOME}/.local/{,**} rw,
+  deny @{HOME}/* mrw,
+  deny @{HOME}/.Private/** mrxwlk,
+  deny owner @{HOME}/.cache/mozilla/firefox/*.default-default/safebrowsing/google4/ rw,
+  deny owner @{HOME}/.cache/mozilla/firefox/*.default-default/safebrowsing-updating/ rw,
+  deny owner @{HOME}/.local/share/recently-used.xbel* rw,
+  deny owner @{HOME}/.mozilla/firefox/*.default-default/datareporting/aborted-session-ping.tmp rw,
+  deny owner @{HOME}/.mozilla/firefox/*.default-default/datareporting/archived/ rw,
+  deny owner @{HOME}/.mozilla/firefox/*.default-default/datareporting/ rw,
+  deny owner @{HOME}/.mozilla/firefox/*.default-default/datareporting/session-state.json.tmp rw,
+  deny owner @{HOME}/.mozilla/firefox/*.default-default/datareporting/state.json.tmp rw,
+  deny owner @{HOME}/.mozilla/firefox/*.default-default/saved-telemetry-pings/ w,
+  deny ptrace (readby),
+  deny ptrace (tracedby),
+  deny @{sys}/bus/pci/devices/ r,
+  deny @{sys}/devices/system/cpu/** r,
+  deny @{system_share_dirs}/applications/{,**} r,
+  deny @{system_share_dirs}/fonts/{,**} w,
+  deny unix (create),
+  deny unix (receive) peer=(label=unconfined),
+  deny /usr/bin/gio-launch-desktop rx,
+  deny /usr/bin/lsb_release rx,
+  deny /usr/lib/firefox/browser/features/formautofill@mozilla.org.xpi r,
+  deny /usr/lib/firefox/browser/features/screenshots@mozilla.org.xpi r,
+  deny /usr/lib/firefox/browser/features/webcompat@mozilla.org.xpi r,
+  deny /usr/lib/firefox/browser/features/webcompat-reporter@mozilla.org.xpi r,
+  deny /usr/lib/firefox*/{crashreporter,pingsender} rx,
+  deny /usr/lib/firefox*/{,**} w,
+  deny /usr/share/pixmaps/ rw,
+  deny /var/cache/fontconfig/{,**} w,
+
+  owner @{HOME}/.cache/gstreamer-1.0/{,**} rwlk,
+
+  /lib/ld-musl-x86_64.so.* mr,
+  /lib/lib*so* mr,
+  
+  /usr/lib/alsa-lib/libasound_module_pcm_pulse.so mr,
+  /usr/lib/pulseaudio/libpulsecommon-*.so mr,
+  /usr/lib/pulseaudio/libpulsecore-15.0.so mr,
+
+  /usr/lib/gio/modules/ r,
+  /usr/lib/gio/modules/giomodule.cache r,
+  /usr/lib/gio/modules/libgvfsdbus.so mr,
+  /usr/lib/gvfs/libgvfscommon.so mr,
+  /usr/lib/lib*so* mr,
+  /usr/lib/libcanberra-0.30/libcanberra-pulse.so mr,
+
+  /usr/lib/xorg/modules/dri/i965_dri.so mr,
+  /usr/lib/xorg/modules/dri/swrast_dri.so mr,
+
+}
+

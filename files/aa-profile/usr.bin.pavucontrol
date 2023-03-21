@@ -1,0 +1,28 @@
+# Last Modified: Thu Oct  7 04:09:59 2021
+abi <abi/3.0>,
+
+include <tunables/global>
+
+/usr/bin/pavucontrol flags=(complain) {
+  include <abstractions/audio>
+  include <abstractions/base>
+  include <abstractions/gio-open>
+  include <abstractions/gnome>
+
+  /usr/bin/pavucontrol mr,
+  /usr/bin/pulseaudio Px,
+  /usr/share/icons/ r,
+  /usr/share/icons/Adwaita/index.theme r,
+  /usr/share/icons/*/** r,
+  /usr/share/pavucontrol/pavucontrol.glade r,
+  /usr/share/pixmaps/ r,
+  owner /home/*/.cache/fontconfig/** r,
+  owner /home/*/.config/ r,
+  owner /home/*/.config/pavucontrol.ini rw,
+  owner /home/*/.config/pavucontrol.ini* rw,
+  owner /home/*/.config/pulse/cookie rk,
+  owner /proc/*/cmdline r,
+  owner /proc/*/fd/ r,
+  owner /usr/share/fonts/** r,
+
+}

@@ -1,0 +1,51 @@
+# AppArmor profile for gpg-agent
+# Version of gpg-agent (gnupg) profiled: 2.2.35
+# Homepage: https://github.com/krathalan/apparmor-profiles
+# Copyright 2019-2022 (C) krathalan; Licensed under GPLv3
+
+abi <abi/3.0>,
+include <tunables/global>
+
+profile gpg-agent /usr/bin/gpg-agent {
+  include <abstractions/base>
+  network unix stream,
+
+  # Access user keys and config
+  include <abstractions/gnupg>
+  owner @{HOME}/.gnupg/private-keys*/{,*} w,
+  owner @{HOME}/.gnupg/private-keys*/* r,
+  owner @{HOME}/.gnupg/sshcontrol rw,
+
+  # Include user overrides for possible symlinked config files
+  include if exists <local/gpg-agent>
+
+  # Curses pinentry
+  /usr/bin/pinentry-curses rix,
+  /dev/tty[0-9] rw,
+  /dev/pts/* rw,
+  @{system_share_dirs}/terminfo/** r,
+
+  # Arch Linux keyring
+  owner /etc/pacman.d/gnupg/{,**} rw,
+
+  # fwupd
+  capability dac_read_search,
+  capability dac_override,
+  owner /etc/nsswitch.conf r,
+  owner /etc/passwd r,
+  owner /var/lib/fwupd/gnupg/{,**} rw,
+
+  # aurutils
+  owner /var/lib/aurbuild/**/etc/pacman.d/gnupg/{,**} rw,
+
+  # Miscellaneous
+  /usr/bin/{bash,dash} rix,
+  @{system_share_dirs}/gnupg/* r,
+
+  # I don't have hardware to test this
+  deny /usr/lib/gnupg/scdaemon rx,
+
+  # Silence unnecessary permissions
+  deny @{PROC}/@{pid}/** r,
+  deny /var/cache/** w,
+}

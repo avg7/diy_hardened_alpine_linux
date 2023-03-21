@@ -1,0 +1,18 @@
+/usr/bin/sudo /sbin/poweroff
+/usr/bin/sudo /bin/sh /etc/files/noroot.sh
+/usr/bin/sudo /bin/chmod -s /usr/bin/sway
+/usr/bin/sudo /bin/chmod +s /bin/su
+/usr/bin/sudo /usr/sbin/openvpn --config /etc/openvpn/vpn_XX_XXX.conf
+cd /etc/openvpn
+/usr/bin/sudo /sbin/apk add /media/usb/cache/*.apk
+/usr/bin/sudo /bin/date --set YYYY-MM-DD
+/usr/bin/sudo /bin/date --set HH:MM:SS
+/usr/bin/sudo /sbin/nft -f vpn_firewall.nft
+/usr/bin/sudo /sbin/nft -f ssh_firewall.nft
+/usr/bin/sudo /sbin/fdisk -l
+/usr/bin/sudo /bin/sh /etc/files/log.sh
+/usr/bin/sudo /bin/sh save.sh
+/usr/bin/sudo /bin/sh umount.sh
+/bin/sh inet.sh
+/usr/bin/sudo /bin/sh end.sh
+

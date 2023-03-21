@@ -1,0 +1,52 @@
+# AppArmor profile for waybar system bar for Wayland
+# Version of waybar profiled: 0.9.16
+# Homepage: https://github.com/krathalan/apparmor-profiles
+# Copyright 2019-2021 (C) krathalan; Licensed under GPLv3
+
+abi <abi/3.0>,
+include <tunables/global>
+
+profile waybar /usr/bin/waybar {
+  include <abstractions/base>
+  include <abstractions/fonts>
+  include <abstractions/krathalans-common-gui>
+  network unix stream,
+
+  # Dconf
+  include <abstractions/dconf>
+  owner /run/user/*/dconf/ w,
+  owner /run/user/*/dconf/user rw,
+
+  # Graphics
+  include <abstractions/wayland>
+
+  # Include user overrides for possible symlinked config files
+  include if exists <local/waybar>
+
+  # Config
+  owner @{HOME}/.config/waybar/** r,
+
+  # Misc
+  @{system_share_dirs}/glib-[0-9]*/schemas/{,**} r,
+  @{system_share_dirs}/terminfo/** r,
+  @{system_share_dirs}/applications/*.desktop r,
+
+  # Executables
+  /usr/bin/waybar mrPx,
+  /usr/bin/{bash,dash} rix,
+
+  # Audio module
+  include <abstractions/audio>
+
+  # Network module
+  network netlink raw,
+  @{PROC}/@{pid}/net/netstat r,
+
+  # CPU module
+  @{PROC}/loadavg r,
+
+  # Deny unnecessary permissions
+  deny /dev/tty* rw,
+  deny /dev/rfkill r,
+  deny @{PROC}/*/net/dev r,
+}

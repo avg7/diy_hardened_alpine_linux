@@ -1,0 +1,82 @@
+# AppArmor profile for lollypop music player
+# Version of lollypop profiled: 1.4.19
+# Homepage: https://github.com/krathalan/apparmor-profiles
+# Copyright 2019-2021 (C) krathalan; Licensed under GPLv3
+
+abi <abi/3.0>,
+include <tunables/global>
+
+profile lollypop /usr/bin/lollypop {
+  include <abstractions/base>
+  include <abstractions/fonts>
+  include <abstractions/krathalans-common-gui>
+  include <abstractions/wayland>
+
+  # Needed to listen to music
+  owner @{HOME}/{M,m}usic/ r,
+  owner @{HOME}/{M,m}usic/** r,
+
+  # Include user overrides for different music directories
+  include if exists <local/lollypop>
+
+  # Audio
+  include <abstractions/audio>
+  /etc/alsa/conf.d/ r,
+  /etc/asound.conf r,
+
+  # Dconf
+  include <abstractions/dconf>
+  owner /run/user/*/dconf/ w,
+  owner /run/user/*/dconf/user rw,
+
+  # Python
+  include <abstractions/python>
+  /usr/bin/ r,
+  /usr/bin/python* rix,
+  /usr/lib/python*/** r,
+  /usr/lib/python*/site-packages/lollypop/** w,
+
+  # Gstreamer
+  /usr/lib/gstreamer*/** mrix,
+  owner @{HOME}/.cache/gstreamer*/** rw,
+  owner @{HOME}/.cache/gstreamer-1.0/ w,
+
+  # Miscellaneous
+  /usr/bin/lollypop r,
+  @{system_share_dirs}/glib*/** r,
+  @{system_share_dirs}/lollypop/** r,
+  @{system_share_dirs}/ladspa/{,**} r,
+
+  owner @{HOME}/.cache/lollypop*/ rw,
+  owner @{HOME}/.cache/lollypop*/** rwlk,
+  owner @{HOME}/.config/user-dirs.dirs r,
+  owner @{user_share_dirs} r,
+  owner @{user_share_dirs}/lollypop/ rw,
+  owner @{user_share_dirs}/lollypop/** rwlk,
+  owner @{user_share_dirs}/recently-used.xbel* rw,
+
+  # Seems to work fine without access to a shell
+  deny /usr/bin/{bash,dash} mrx,
+
+  # Don't allow executable mapping of arbitrary files
+  # https://askubuntu.com/questions/336552/what-are-orcexec-files
+  deny /run/user/*/orcexec* mrw,
+  deny /tmp/** mrw,
+  deny @{HOME}/orcexec* mrw,
+
+  # GVFS isn't tested :)
+  deny @{system_share_dirs}/gvfs/remote-volume-monitors/ r,
+
+  # No internet access
+  deny network netlink raw,
+  deny /etc/ssl/openssl.cnf r,
+
+  # Silence unneeded permissions
+  deny /dev/ rw,
+  deny /dev/dri/ r,
+  deny /etc/nsswitch.conf rw,
+  deny @{PROC}/** rw,
+  deny @{sys}/** rw,
+  deny /usr/share/nvidia/{,**} rw,
+  deny /var/** rw,
+}

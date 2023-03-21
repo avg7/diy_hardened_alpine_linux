@@ -1,0 +1,32 @@
+abi <abi/3.0>,
+
+include <tunables/global>
+
+/usr/bin/geany {
+  include <abstractions/base>
+  include <abstractions/gio-open>
+  include <abstractions/gnome>
+  include <abstractions/krathalans-nameservice>
+
+  deny /etc/os-release r,
+
+  /etc/zoneinfo/UTC r,  
+  /etc/zoneinfo/CET r,
+  /usr/bin/geany mr,
+  /usr/share/geany/{,**} r,
+  /usr/share/icons/{,**} r,
+  /usr/share/mime/application/octet-stream.xml r,
+  owner /home/*/ rw,
+  owner /home/*/.cache/fontconfig/*-le64.cache-8 r,
+  owner /home/*/.config/geany/ w,
+  owner /home/*/.config/geany/{,**} rw,
+  owner /home/*/.config/glib-2.0/settings/.goutputstream-* rw,
+  owner /home/*/.config/glib-2.0/settings/keyfile r,
+  owner /home/*/.config/gtk-3.0/ rw,
+  owner /home/*/.goutputstream-* rw,
+  owner /home/*/.local/share/ r,
+  owner /home/*/.local/share/recently-used.xbel rw,
+  owner /home/*/.local/share/recently-used.xbel.* rw,
+  owner /home/*/{,**} rw,
+
+}

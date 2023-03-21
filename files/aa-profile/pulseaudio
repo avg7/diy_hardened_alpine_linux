@@ -1,0 +1,82 @@
+# AppArmor profile for pulseaudio sound system
+# Version of pulseaudio profiled: 14.2
+# Homepage: https://github.com/krathalan/apparmor-profiles
+# Copyright 2019 (C) krathalan; Licensed under GPLv3
+
+abi <abi/3.0>,
+include <tunables/global>
+
+profile pulseaudio /usr/bin/pulseaudio {
+  include <abstractions/audio>
+  include <abstractions/base>
+  include <abstractions/dbus-session-strict>
+  include <abstractions/user-tmp>
+  network unix stream,
+  network unix dgram,
+
+  # Dconf
+  include <abstractions/dconf>
+  owner /run/user/*/dconf/ w,
+  owner /run/user/*/dconf/user rw,
+
+  # Subprocesses
+  /usr/bin/pulseaudio mrix,
+  /usr/lib/pulse/gsettings-helper mrix,
+
+  # "Networking"
+  network netlink raw,
+  network bluetooth seqpacket,
+
+  # User data
+  /{,var/}run/systemd/users/* r,
+  owner @{HOME}/ r,
+  owner @{HOME}/.esd_auth rwk,
+  owner @{HOME}/.config/pulse/{,**} rw,
+
+  # System access
+  /{,var/}run/udev/data/* r,
+  @{sys}/bus/ r,
+  @{sys}/class/ r,
+  @{sys}/class/sound/ r,
+  @{sys}/devices/pci[0-9]*/**/sound/card[0-9]/** r,
+  @{sys}/devices/virtual/dmi/id/* r,
+  @{sys}/devices/virtual/sound/** r,
+  @{system_share_dirs}/glib-[0-9]*/schemas/gschemas.compiled r,
+  @{system_share_dirs}/pulseaudio/alsa-mixer/** r,
+  owner @{PROC}/*/fd/ r,
+  owner /run/user/*/pulse/* rw,
+
+  # Alsa cards
+  /usr/share/alsa-card-profile/{,**} r,
+
+  # Keep track of applications using audio
+  /var/lib/flatpak/exports/share/applications/ r,
+  @{system_share_dirs}/applications/{,*} r,
+  # For some reason pulseaudio/apparmor doesn't accept the tunable version
+  /usr/share/applications/{,*} r,
+
+  # Needed for audio in some games (e.g. Pillars of Eternity II)
+  @{PROC}/@{pid}/stat r,
+
+  # Needed for audio in some games launched with Steam
+  owner @{HOME}/.local/share/Steam/{,**} r,
+
+  # Intel audio
+  /opt/intel/mediasdk/lib/libmfx.so.* r,
+
+  # Pavucontrol
+  # https://askubuntu.com/questions/336552/what-are-orcexec-files
+  owner /run/user/*/orcexec* mrw,
+  owner /tmp/orcexec* mrw,
+  owner @{HOME}/orcexec* mrw,
+
+  # Opened at start if gconf is present
+  /usr/bin/gsettings-data-convert rCx,
+
+  profile gsettings-data-convert /usr/bin/gsettings-data-convert {
+    @{system_share_dirs}/GConf/gsettings/{,**} r,
+    @{user_share_dirs}/gsettings-data-convert* rw,
+    @{HOME}/.config/gconf/{,**} rw,
+    /etc/gconf/[0-9]/{,**} r,
+  }
+}

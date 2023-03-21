@@ -1,0 +1,68 @@
+# AppArmor profile for NetworkManager
+# Version of NetworkManager profiled: 1.40.8
+# Homepage: https://github.com/krathalan/apparmor-profiles
+# Copyright 2019-2022 (C) krathalan; Licensed under GPLv3
+
+#include <tunables/global>
+
+profile NetworkManager /usr/bin/NetworkManager {
+  #include <abstractions/base>
+  #include <abstractions/krathalans-hardening>
+
+  # Networking
+  #include <abstractions/krathalans-networking>
+  capability net_admin,
+  capability net_bind_service,
+  capability net_raw,
+
+  # Write to system log
+  capability audit_write,
+
+  # NetworkManager runs as root anyways
+  capability dac_override,
+
+  # May need to load driver modules (e.g. iwlwifi)
+  capability sys_module,
+
+  # Helper programs
+  /usr/bin/{bash,dash} rix,
+
+  # Config
+  owner /etc/NetworkManager/{,**} r,
+
+  # Needed to record connection information (e.g. wifi passwords)
+  owner /etc/NetworkManager/system-connections/{,**} w,
+
+  # Needed for nmtui to function properly
+  @{PROC}/@{pid}/stat r,
+  owner @{PROC}/*/fd/ r,
+
+  # Needed for nmtui to work for systemd-homed users
+  owner /{,var/}run/systemd/userdb/ r,
+
+  # Devices (e.g. network adapters)
+  owner /dev/rfkill rw,
+  owner /{,var/}run/udev/data/** r,
+  owner @{sys}/devices/** r,
+  owner @{sys}/bus/ r,
+  owner @{sys}/class/{,**} r,
+
+  # Miscellaneous
+  owner /etc/machine-id r,
+  owner /etc/passwd r,
+  owner @{PROC}/sys/net/** rw,
+  owner /{,var/}run/NetworkManager/{,**} rw,
+  owner /var/lib/NetworkManager/{,**} rw,
+
+  # Resolvconf
+  owner /etc/resolv.conf* rw,
+
+  # Silence unnecessary permissions
+  deny capability kill,
+  deny ptrace read peer=unconfined,
+  deny / r,
+  deny /etc/ r,
+  deny @{PROC}/cmdline r,
+  deny @{PROC}/sys/kernel/osrelease r,
+  deny @{PROC}/sys/kernel/random/boot_id r,
+}

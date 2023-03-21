@@ -1,0 +1,119 @@
+# AppArmor profile for pass UNIX password manager
+# Version of pass profiled: 1.7.3
+# Homepage: https://github.com/krathalan/apparmor-profiles
+# Copyright 2019 (C) krathalan; Licensed under GPLv3
+
+#include <tunables/global>
+
+profile pass /usr/bin/pass {
+  #include <abstractions/base>
+  #include <abstractions/krathalans-hardening>
+  #include <abstractions/user-tmp>
+
+  # Include user overrides for different password or GNUPG directories
+  #include <local/pass>
+
+  # Various programs -- pass is a bash script, after all
+  #include <abstractions/bash>
+  /usr/bin/base64 mrix,
+  /usr/bin/{bash,dash} mrix,
+  /usr/bin/getopt mrix,
+  /usr/bin/head mrix,
+  /usr/bin/pass r,
+  /usr/bin/sed mrix,
+  /usr/bin/sleep mrix,
+  /usr/bin/tail mrix,
+  /usr/bin/tree mrix,
+  /usr/bin/which mrix,
+
+  # Needed for generating passwords
+  /usr/bin/dirname mrix,
+  /usr/bin/mkdir mrix,
+  /usr/bin/tr mrix,
+  owner @{HOME}/.gnupg/random_seed k,
+
+  # Needed for deleting passwords
+  /usr/bin/rm mrix,
+  /usr/bin/rmdir mrix,
+
+  # Needed for renaming passwords
+  /usr/bin/grep mrix,
+  /usr/bin/find mrix,
+  /usr/bin/mv mrix,
+  /usr/bin/sort mrix,
+
+  # Needed for copying passwords
+  /usr/bin/cp mrix,
+
+  # Needed for editing passwords with micro
+  /usr/bin/micro rPx,
+
+  # Needed for editing passwords with nano
+  /usr/bin/mktemp mrix,
+  /usr/bin/nano rCx,
+  owner /dev/shm/pass.*/{,*,**} rw,
+
+  profile nano /usr/bin/nano {
+    #include <abstractions/base>
+    #include <abstractions/bash>
+    #include <abstractions/krathalans-hardening>
+
+    /usr/bin/nano mr,
+
+    # Config files
+    /etc/nanorc r,
+    owner @{HOME}/.nanorc r,
+    owner @{HOME}/.config/nano/nanorc r,
+
+    # Include user overrides for possible symlinked config files
+
+    # Syntax highlighting
+    /usr/share/file/misc/magic.mgc r,
+    /usr/share/nano-syntax-highlighting/{,*} r,
+
+    # Needed for pass to read the edited file
+    owner /dev/shm/pass.*/{,*,**} rw,
+
+    # Deny unnecessary permissions
+    deny /dev/pts/* rw,
+  }
+
+  # GPG
+  #include <abstractions/gnupg>
+  /usr/bin/gpg mrix,
+  owner @{HOME}/.gnupg/*lock* rwl,
+  owner @{HOME}/.gnupg/*lk* rwl,
+
+  # pass-otp extension
+  /usr/bin/oathtool rix,
+
+  # Write to console
+  /dev/tty rw,
+
+  # Default password store
+  owner @{HOME}/.password-store/{,**} rw,
+
+  # xclip
+  /usr/bin/xclip mrix,
+  # Needed to clear clipboard after X seconds
+  /usr/bin/pkill mrix,
+  # Needed or otherwise segfaults
+  @{PROC} r,
+  owner @{HOME}/.Xauthority r,
+
+  # Pass asks for diff when editing entries, but it never displays a diff of anything
+  deny /usr/bin/diff mrx,
+
+  # No git support -- that would require networking :)
+  deny /usr/bin/git mrx,
+
+  # Deny unnecessary permissions
+  deny /dev/pts/[0-9] rw,
+  deny @{HOME}/ r,
+  deny @{HOME}/.gnupg/*.tmp rw,
+  # These only seem to happen when xclip is used
+  deny /etc/nsswitch.conf r,
+  deny /etc/passwd r,
+  deny @{PROC}/sys/kernel/osrelease r,
+  deny @{PROC}/@{pid}/cmdline r,
+}

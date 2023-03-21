@@ -1,0 +1,41 @@
+include <tunables/global>
+
+/usr/bin/nemo {
+  include <abstractions/base>
+  include <abstractions/gio-open>
+  include <abstractions/gnome>
+  include <abstractions/krathalans-nameservice>
+  include <abstractions/opencl-pocl>
+  include <abstractions/ubuntu-browsers.d/user-files>
+
+  /bin/ r,
+  /bin/bbsuid mrix,
+  /bin/busybox mrix,
+  /dev/ r,
+  /etc/ r,
+  /etc/fstab r,
+  /etc/zoneinfo/CET r,
+  /home/ r,
+  /lib/ r,
+  /media/ r,
+  /mnt/ r,
+  /opt/ r,
+  /proc/ r,
+  /run/ r,
+  /sbin/ r,
+  /srv/ r,
+  /sys/ r,
+  /usr/ r,
+  /usr/bin/geany Px,
+  /usr/libexec/gio-launch-desktop Px,
+  /usr/share/icons/{,**} r,
+  /usr/share/mime/{,**} r,
+  /usr/share/nemo/{,**} r,
+  /usr/share/pixmaps/{,**} r,
+  /usr/share/thumbnailers/{,**} r,
+  /var/ r,
+  owner /home/*/{,**} rw,
+  owner /proc/*/fd/ r,
+  owner /proc/*/mountinfo r,
+
+}

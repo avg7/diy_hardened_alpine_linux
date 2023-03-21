@@ -1,0 +1,61 @@
+# Last Modified: Thu Jan 21 09:58:22 2016
+abi <abi/3.0>,
+
+include <tunables/global>
+
+/usr/bin/yambar flags=(complain) {
+  include <abstractions/audio>
+  include <abstractions/base>
+  include <abstractions/fonts>
+  include <abstractions/nameservice>
+  /bin/bbsuid Ux,
+  /usr/bin/sudo Ux,
+  owner /sbin/poweroff Ux,
+  owner /bin/umount Ux,
+  owner /bin/mount Ux,
+  /etc/udev/udev.conf r,
+  /etc/zoneinfo/UTC r,
+  /run/udev/data/* r,
+  /usr/bin/pavucontrol Px,
+  /sys/bus/ r,
+  /sys/class/ r,
+  /sys/class/backlight/ r,
+  /sys/class/block/ r,
+  /sys/class/power_supply/ r,
+  /sys/devices/LNXSYSTM*/LNXSYBUS*/*/power_supply/*/ r,
+  /sys/devices/LNXSYSTM*/LNXSYBUS*/*/power_supply/*/capacity r,
+  /sys/devices/LNXSYSTM*/LNXSYBUS*/*/power_supply/*/charge_full r,
+  /sys/devices/LNXSYSTM*/LNXSYBUS*/*/power_supply/*/charge_full_design r,
+  /sys/devices/LNXSYSTM*/LNXSYBUS*/*/power_supply/*/charge_now r,
+  /sys/devices/LNXSYSTM*/LNXSYBUS*/*/power_supply/*/status r,
+  /sys/devices/LNXSYSTM*/LNXSYBUS*/*/power_supply/*/current_now r,
+  /sys/devices/pci*/*/drm/*/*/intel_backlight/ r,
+  /sys/devices/pci*/*/drm/*/*/intel_backlight/brightness r,
+  /sys/devices/pci*/*/drm/*/*/intel_backlight/max_brightness r,
+  /sys/devices/pci*/*/*/*/*/*/*/*/*/block/{,**} r,
+  /sys/devices/pci*/*/ata*/host*/target*/*/block/*/{,**} r,
+  /sys/devices/virtual/block/loop*/removable r,
+  /sys/devices/virtual/block/loop*/uevent r,
+  /sys/devices/virtual/block/ram*/removable r,
+  /sys/devices/virtual/block/ram*/uevent r,
+
+  /sys/devices/platform/*/*/*/*/block/*/*/uevent r,
+  /sys/devices/platform/*/*/*/*/block/*/removable r,
+  /sys/devices/platform/*/*/*/*/block/*/uevent r,
+
+  /sys/devices/platform/*/*/*/*/*/*/*/block/*/removable r,
+  /sys/devices/platform/*/*/*/*/*/*/*/block/*/*/size r,
+  /sys/devices/platform/*/*/*/*/*/*/*/block/*/size r, 
+
+  /sys/devices/platform/*/*/*/*/*/*/*/*/*/block/*/removable r,
+  /sys/devices/platform/*/*/*/*/*/*/*/*/*/block/*/*/size r,
+  /sys/devices/platform/*/*/*/*/*/*/*/*/*/block/*/size r,
+
+  /usr/bin/yambar mr,
+  owner /home/*/.cache/fontconfig/* r,
+  owner /home/*/.config/yambar/config.yml r,
+  owner /proc/*/mountinfo r,
+  owner /proc/*/task/*/comm w,
+  owner /usr/share/fonts/** rw,
+
+}
